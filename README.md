@@ -32,21 +32,19 @@ python manage.py runserver
 
 ## Deliverables index
 
-Each question has its own write-up under `reports/`:
+The full write-up for every question is in the report document submitted on Canvas. This table maps each question to the code and artifacts in this repo:
 
-| Question | Write-up | Main artifacts |
-|---|---|---|
-| Q1 Linter | [q1_lint.md](reports/q1_lint.md) | [pyproject.toml](pyproject.toml), [q1_ruff_full_output.txt](reports/q1_ruff_full_output.txt) |
-| Q2 UAT | [q2_uat.md](reports/q2_uat.md) | [uat/uat_test_cases.xlsx](uat/uat_test_cases.xlsx), [uat/uat_data.py](uat/uat_data.py) |
-| Q3 Unit tests | [q3_unit_tests.md](reports/q3_unit_tests.md) | [qa_tests/test_unit.py](qa_tests/test_unit.py), [htmlcov/](reports/htmlcov/index.html) |
-| Q4 Performance | [q4_performance.md](reports/q4_performance.md) | [performance/load.js](performance/load.js), [performance/stress.js](performance/stress.js) |
-| Q5 UI Automation | [q5_ui_automation.md](reports/q5_ui_automation.md) | [qa_tests/ui/](qa_tests/ui/) + 5 Playwright screenshots |
-| Q6 Smoke Plan | [q6_smoke_plan.md](reports/q6_smoke_plan.md) | (document only) |
-| Q7 Integration | [q7_integration_tests.md](reports/q7_integration_tests.md) | [qa_tests/test_integration.py](qa_tests/test_integration.py) |
-| Q8 Code Smells | [q8_smells.md](reports/q8_smells.md) | (review only, maps to refactors R1/R4/R6) |
-| Q9 CI/CD | [q9_ci_cd.md](reports/q9_ci_cd.md) | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
-
-The combined final report is in [reports/Final_Report.docx](reports/Final_Report.docx).
+| Question | Main artifacts in repo |
+|---|---|
+| Q1 Linter | [pyproject.toml](pyproject.toml), [q1_ruff_full_output.txt](reports/q1_ruff_full_output.txt) |
+| Q2 UAT | [uat/uat_test_cases.xlsx](uat/uat_test_cases.xlsx), [uat/uat_data.py](uat/uat_data.py) |
+| Q3 Unit tests | [qa_tests/test_unit.py](qa_tests/test_unit.py), [htmlcov/](reports/htmlcov/index.html), [q3_coverage_report.txt](reports/q3_coverage_report.txt) |
+| Q4 Performance | [performance/load.js](performance/load.js), [performance/stress.js](performance/stress.js), summary JSON + raw output under [reports/](reports/) |
+| Q5 UI Automation | [qa_tests/ui/](qa_tests/ui/) (5 Playwright tests + conftest) |
+| Q6 Smoke Plan | document only |
+| Q7 Integration | [qa_tests/test_integration.py](qa_tests/test_integration.py) |
+| Q8 Code Smells | review only (maps to refactors R1/R4/R6) |
+| Q9 CI/CD | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 
 ## Refactoring summary
 
@@ -106,8 +104,6 @@ django_poll_refactored/
 4. Deliberately add an unused import (to create an F401) and push — this run is **red**, demonstrating the lint gate.
 5. Revert that line and push — back to **green**.
 6. Capture one screenshot each into `screenshots/q9_{red,green}_run.png`.
-
-See [reports/q9_ci_cd.md](reports/q9_ci_cd.md) for the detailed steps.
 
 ## AI Usage Statement
 
