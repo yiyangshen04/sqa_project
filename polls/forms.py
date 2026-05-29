@@ -1,5 +1,6 @@
 from django import forms
-from .models import Poll, Choice
+
+from .models import Choice, Poll
 
 
 class PollAddForm(forms.ModelForm):
@@ -13,7 +14,9 @@ class PollAddForm(forms.ModelForm):
         model = Poll
         fields = ['text', 'choice1', 'choice2']
         widgets = {
-            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'cols': 20}),
+            'text': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 5, 'cols': 20}
+            ),
         }
 
 
@@ -22,7 +25,9 @@ class EditPollForm(forms.ModelForm):
         model = Poll
         fields = ['text', ]
         widgets = {
-            'text': forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'cols': 20}),
+            'text': forms.Textarea(
+                attrs={'class': 'form-control', 'rows': 5, 'cols': 20}
+            ),
         }
 
 

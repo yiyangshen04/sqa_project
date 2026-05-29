@@ -1,9 +1,10 @@
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
-from .forms import UserRegistrationForm
 from django.contrib import messages
-from django.http import HttpResponse
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import redirect, render
+
+from pollme.messages import SUCCESS_TAGS, WARNING_TAGS
+
+from .forms import UserRegistrationForm
 
 
 def login_user(request):
@@ -18,7 +19,7 @@ def login_user(request):
             return redirect(redirect_url)
         else:
             messages.error(request, "Username Or Password is incorrect!",
-                           extra_tags='alert alert-warning alert-dismissible fade show')
+                           extra_tags=WARNING_TAGS)
 
     return render(request, 'accounts/login.html')
 
@@ -30,39 +31,16 @@ def logout_user(request):
 
 def create_user(request):
     if request.method == 'POST':
-        check1 = False
-        check2 = False
-        check3 = False
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
-            password1 = form.cleaned_data['password1']
-            password2 = form.cleaned_data['password2']
-            email = form.cleaned_data['email']
-
-            if password1 != password2:
-                check1 = True
-                messages.error(request, 'Password did not match!',
-                               extra_tags='alert alert-warning alert-dismissible fade show')
-            if User.objects.filter(username=username).exists():
-                check2 = True
-                messages.error(request, 'Username already exists!',
-                               extra_tags='alert alert-warning alert-dismissible fade show')
-            if User.objects.filter(email=email).exists():
-                check3 = True
-                messages.error(request, 'Email already registered!',
-                               extra_tags='alert alert-warning alert-dismissible fade show')
-
-            if check1 or check2 or check3:
-                messages.error(
-                    request, "Registration Failed!", extra_tags='alert alert-warning alert-dismissible fade show')
-                return redirect('accounts:register')
-            else:
-                user = User.objects.create_user(
-                    username=username, password=password1, email=email)
-                messages.success(
-                    request, f'Thanks for registering {user.username}.', extra_tags='alert alert-success alert-dismissible fade show')
-                return redirect('accounts:login')
+            user = form.save()
+            messages.success(
+                request,
+                f'Thanks for registering {user.username}.',
+                extra_tags=SUCCESS_TAGS,
+            )
+            return redirect('accounts:login')
+        messages.error(request, 'Registration Failed!', extra_tags=WARNING_TAGS)
     else:
         form = UserRegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})

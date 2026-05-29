@@ -6,4 +6,23 @@ local_settings.py
 db.sqlite3
 media
 venv
+.venv/
 .vscode
+.DS_Store
+.coverage
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+test-results/
+*.egg-info/
+node_modules/
+
+# Internal planning memos & tooling (not graded deliverables)
+reports/SUMMARY_BRIEFING.md
+reports/WORK_BLUEPRINT_ZH.md
+reports/WORK_BLUEPRINT_ZH.pdf
+reports/course_alignment_report.html
+reports/course_alignment_report.pdf
+reports/.blueprint.html
+reports/.html_to_pdf.py
+reports/.pdf_style.html

@@ -1,91 +1,108 @@
-# Django-Poll-App
+# Django Poll App — SQA Assignment
 
-Django poll app is a full featured polling app. You have to register in this app to show the polls and to vote. If you already voted you can not vote again. Only the owner of a poll can add poll , edit poll, update poll, delete poll , add choice, update choice, delete choice and end a poll. If a poll is ended it can not be voted. Ended poll only shows user the final result of the poll. There is a search option for polls. Also user can filter polls by name, publish date, and by number of voted. Pagination will work even after applying filter.
+基于 [devmahmud/Django-Poll-App](https://github.com/devmahmud/Django-Poll-App) 做的 QA 作业。重构了几处可测性问题，写了完整的测试体系：lint、单测、集成测、UI 自动化、性能测试，外加 CI/CD pipeline。
 
-<h1>Getting Started</h1>
-<p>These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.</p>
+## 跑起来
 
-<h2>Prerequisites</h2>
-<code>python== 3.5 or up and django==2.0 or up</code>
+```bash
+# 1) 创建 venv 装依赖
+uv venv .venv
+source .venv/bin/activate
+uv pip install -r requirements.txt ruff coverage pytest pytest-django pytest-playwright openpyxl Pillow
+playwright install chromium
 
-<h2>Installing</h2>
-<pre>open terminal and type</pre>
-<code>git clone https://github.com/devmahmud/Django-poll-app.git</code><br><br>
+# 2) DB
+python manage.py migrate
 
-<h4>or simply download using the url below</h4>
-<code>https://github.com/devmahmud/Django-poll-app.git</code><br>
+# 3) 起 dev server (可选)
+python manage.py runserver
+```
 
-<h2>To migrate the database open terminal in project directory and type</h2>
-<code>python manage.py makemigrations</code><br>
-<code>python manage.py migrate</code>
+## 跑测试
 
-<h2>To use admin panel you need to create superuser using this command </h2>
-<code>python manage.py createsuperuser</code>
+| 想跑啥 | 命令 |
+|---|---|
+| ruff lint | `ruff check .` |
+| 单元测试 | `python manage.py test qa_tests.test_unit` |
+| 集成测试 | `python manage.py test qa_tests.test_integration` |
+| Playwright UI | `pytest qa_tests/ui/` |
+| Coverage | `coverage run --source=polls,accounts manage.py test qa_tests.test_unit && coverage report` |
+| k6 perf | 先起 dev server，然后 `k6 run performance/load.js` |
+| 一次跑全部 (Q3 + Q7) | `python manage.py test qa_tests` |
 
-<h2>To Create some dummy text data for your app follow the step below:</h2>
-<code>pip install faker</code>
-<code>python manage.py shell</code>
-<code>import seeder</code>
-<code>seeder.seed_all(30)</code>
-<p>Here 30 is a number of entry. You can use it as your own</p>
+## 作业产物索引
 
-<h2> To run the program in local server use the following command </h2>
-<code>python manage.py runserver</code>
+每道题独立 writeup 在 `reports/`：
 
-<p>Then go to http://127.0.0.1:8000 in your browser</p>
+| 题 | Writeup | 主要工件 |
+|---|---|---|
+| Q1 Linter | [q1_lint.md](reports/q1_lint.md) | [pyproject.toml](pyproject.toml), [q1_ruff_full_output.txt](reports/q1_ruff_full_output.txt) |
+| Q2 UAT | [q2_uat.md](reports/q2_uat.md) | [uat/uat_test_cases.xlsx](uat/uat_test_cases.xlsx), [uat/uat_data.py](uat/uat_data.py) |
+| Q3 Unit tests | [q3_unit_tests.md](reports/q3_unit_tests.md) | [qa_tests/test_unit.py](qa_tests/test_unit.py), [htmlcov/](reports/htmlcov/index.html) |
+| Q4 Performance | [q4_performance.md](reports/q4_performance.md) | [performance/load.js](performance/load.js), [performance/stress.js](performance/stress.js) |
+| Q5 UI Auto | [q5_ui_automation.md](reports/q5_ui_automation.md) | [qa_tests/ui/](qa_tests/ui/) + 5 张 Playwright 截图 |
+| Q6 Smoke Plan | [q6_smoke_plan.md](reports/q6_smoke_plan.md) | (纯文档) |
+| Q7 Integration | [q7_integration_tests.md](reports/q7_integration_tests.md) | [qa_tests/test_integration.py](qa_tests/test_integration.py) |
+| Q8 Code Smells | [q8_smells.md](reports/q8_smells.md) | (纯 review，对应 R1/R4/R6 重构) |
+| Q9 CI/CD | [q9_ci_cd.md](reports/q9_ci_cd.md) | [.github/workflows/ci.yml](.github/workflows/ci.yml) |
 
-<h2>Project snapshot</h2>
-<h3>Home page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51409444-0e40a600-1b8c-11e9-9ab0-27d759db8973.jpg" width="100%"</img> 
-</div>
+## 重构清单
 
-<h3>Login Page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51409509-36c8a000-1b8c-11e9-845a-65b49262aa53.png" width="100%"</img> 
-</div>
+四处为可测性做的重构，每条对应一个或多个题：
 
-<h3>Registration Page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51409562-5cee4000-1b8c-11e9-82f6-1aa2df159528.png" width="100%"</img> 
-</div>
+| ID | 文件 | 改了啥 | 服务哪几题 |
+|---|---|---|---|
+| R1 | `polls/models.py` + `polls/services.py` (新) | 拆 `get_result_dict` 为 `compute_poll_results` + `attach_alert_classes`，RNG 注入 | Q3 (stub/fake), Q8 (long method) |
+| R3 | `polls/views.py` + `polls/migrations/0003_*` | 修 `poll_vote` 3 bug + 加 `Vote` UniqueConstraint | Q1 (lint), Q7 (DB constraint test) |
+| R4 | `pollme/messages.py` (新) | 抽 `SUCCESS_TAGS` / `WARNING_TAGS` 公共常量 | Q8 (duplicated code) |
+| R6 | `accounts/forms.py` + `accounts/views.py` | 注册校验从 view 搬到 Form.clean_* | Q3 (mock), Q8 (feature envy) |
 
-<h3>Poll List Page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51409728-d423d400-1b8c-11e9-8903-4c08ba64512e.png" width="100%"</img> 
-</div>
+## 测试数量
 
-<h3>Poll Add Page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51409796-fe759180-1b8c-11e9-941b-c1202956cca4.png" width="100%"</img> 
-</div>
+- **9 个单元测试**（其中 5 个用 test double：1 fake / 1 stub / 1 mock / 1 spy + 1 zero-vote 边界）
+- **2 个集成测试**（view↔DB 投票去重 + form↔User 表注册）
+- **5 个 Playwright UI 测试**（register/login/create/vote/double-vote/delete-choice）
+- **2 个 k6 性能脚本**（load 50 VU 30s + stress 1→200 VU 60s）
+- **15 个 UAT 测试用例**（覆盖 4 种黑盒技术，3+4+3+5 分布）
+- **总自动化测试 16 个 + 手动 UAT 15 条**
 
-<h3>Polling page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51409843-1e0cba00-1b8d-11e9-9109-cceb79a6a623.png" width="100%"</img> 
-</div>
+## 目录结构
 
-<h3>Poll Result Page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51409932-60ce9200-1b8d-11e9-9c83-c59ba498ca8b.png" width="100%"</img> 
-</div>
+```
+django_poll_refactored/
+├── .github/workflows/ci.yml          # Q9
+├── accounts/                          # 上游 + R6 重构
+├── polls/                             # 上游 + R1 R3 重构
+│   ├── services.py                    # R1 新增
+│   └── migrations/0003_vote_unique_user_poll.py  # R3 新增
+├── pollme/
+│   └── messages.py                    # R4 新增
+├── performance/
+│   ├── load.js                        # Q4
+│   └── stress.js                      # Q4
+├── qa_tests/
+│   ├── test_unit.py                   # Q3
+│   ├── test_integration.py            # Q7
+│   └── ui/                            # Q5
+│       ├── conftest.py
+│       └── test_*.py (5 个)
+├── reports/                           # 所有 writeup
+├── screenshots/                       # 所有截图
+├── scripts/                           # 渲终端图的小工具
+├── uat/
+│   ├── uat_data.py                    # Q2 数据源
+│   ├── generate.py                    # Q2 xlsx 生成器
+│   └── uat_test_cases.xlsx            # Q2 主交付
+└── pyproject.toml                     # ruff + pytest 配置
+```
 
-<h3>Poll Edit Page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51410008-92dff400-1b8d-11e9-8172-c228e4b60e28.png" width="100%"</img> 
-</div>
+## CI/CD 演示流程
 
-<h3>Choice Update Delete Page</h3>
-<div align="center">
-    <img src="https://user-images.githubusercontent.com/19981097/51410442-dc7d0e80-1b8e-11e9-8f8e-18e6d7bb70fb.png" width="100%"</img> 
-</div>
+1. 创建 GitHub repo（自己的，不要用 upstream remote）
+2. `git remote set-url origin <你的 repo>` + `git add -A && git commit && git push -u origin master`（workflow 同时监听 main 和 master）
+3. GitHub Actions 自动跑 → 当前 `ruff check .` 是干净的，所以这次会**绿**
+4. 故意加一个没用的 import（制造 F401）+ push → 这次会**红**，演示 lint gate 生效
+5. revert 那行 + push → 回到**绿**
+6. 各截一张图存到 `screenshots/q9_{red,green}_run.png`
 
-<h2>Author</h2>
-<blockquote>
-  Mahmudul alam<br>
-  Email: expelmahmud@gmail.com
-</blockquote>
-
-<div align="center">
-    <h3>========Thank You !!!=========</h3>
-</div>
+详细步骤见 [reports/q9_ci_cd.md](reports/q9_ci_cd.md)。

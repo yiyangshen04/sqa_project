@@ -1,11 +1,14 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Count
-from django.contrib import messages
-from .models import Poll, Choice, Vote
-from .forms import PollAddForm, EditPollForm, ChoiceAddForm
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+
+from pollme.messages import SUCCESS_TAGS, WARNING_TAGS
+
+from .forms import ChoiceAddForm, EditPollForm, PollAddForm
+from .models import Choice, Poll, Vote
 
 
 @login_required()
@@ -59,7 +62,7 @@ def polls_add(request):
     if request.user.has_perm('polls.add_poll'):
         if request.method == 'POST':
             form = PollAddForm(request.POST)
-            if form.is_valid:
+            if form.is_valid():
                 poll = form.save(commit=False)
                 poll.owner = request.user
                 poll.save()
@@ -69,7 +72,10 @@ def polls_add(request):
                     poll=poll, choice_text=form.cleaned_data['choice2']).save()
 
                 messages.success(
-                    request, "Poll & Choices added successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+                    request,
+                    "Poll & Choices added successfully.",
+                    extra_tags=SUCCESS_TAGS,
+                )
 
                 return redirect('polls:list')
         else:
@@ -90,10 +96,10 @@ def polls_edit(request, poll_id):
 
     if request.method == 'POST':
         form = EditPollForm(request.POST, instance=poll)
-        if form.is_valid:
+        if form.is_valid():
             form.save()
             messages.success(request, "Poll Updated successfully.",
-                             extra_tags='alert alert-success alert-dismissible fade show')
+                             extra_tags=SUCCESS_TAGS)
             return redirect("polls:list")
 
     else:
@@ -109,7 +115,7 @@ def polls_delete(request, poll_id):
         return redirect('home')
     poll.delete()
     messages.success(request, "Poll Deleted successfully.",
-                     extra_tags='alert alert-success alert-dismissible fade show')
+                     extra_tags=SUCCESS_TAGS)
     return redirect("polls:list")
 
 
@@ -121,12 +127,12 @@ def add_choice(request, poll_id):
 
     if request.method == 'POST':
         form = ChoiceAddForm(request.POST)
-        if form.is_valid:
+        if form.is_valid():
             new_choice = form.save(commit=False)
             new_choice.poll = poll
             new_choice.save()
             messages.success(
-                request, "Choice added successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+                request, "Choice added successfully.", extra_tags=SUCCESS_TAGS)
             return redirect('polls:edit', poll.id)
     else:
         form = ChoiceAddForm()
@@ -145,12 +151,12 @@ def choice_edit(request, choice_id):
 
     if request.method == 'POST':
         form = ChoiceAddForm(request.POST, instance=choice)
-        if form.is_valid:
+        if form.is_valid():
             new_choice = form.save(commit=False)
             new_choice.poll = poll
             new_choice.save()
             messages.success(
-                request, "Choice Updated successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+                request, "Choice Updated successfully.", extra_tags=SUCCESS_TAGS)
             return redirect('polls:edit', poll.id)
     else:
         form = ChoiceAddForm(instance=choice)
@@ -170,7 +176,7 @@ def choice_delete(request, choice_id):
         return redirect('home')
     choice.delete()
     messages.success(
-        request, "Choice Deleted successfully.", extra_tags='alert alert-success alert-dismissible fade show')
+        request, "Choice Deleted successfully.", extra_tags=SUCCESS_TAGS)
     return redirect('polls:edit', poll.id)
 
 
@@ -193,20 +199,18 @@ def poll_vote(request, poll_id):
     choice_id = request.POST.get('choice')
     if not poll.user_can_vote(request.user):
         messages.error(
-            request, "You already voted this poll!", extra_tags='alert alert-warning alert-dismissible fade show')
+            request, "You already voted this poll!", extra_tags=WARNING_TAGS)
         return redirect("polls:list")
 
     if choice_id:
-        choice = Choice.objects.get(id=choice_id)
+        choice = get_object_or_404(Choice, id=choice_id)
         vote = Vote(user=request.user, poll=poll, choice=choice)
         vote.save()
-        print(vote)
         return render(request, 'polls/poll_result.html', {'poll': poll})
     else:
         messages.error(
-            request, "No choice selected!", extra_tags='alert alert-warning alert-dismissible fade show')
+            request, "No choice selected!", extra_tags=WARNING_TAGS)
         return redirect("polls:detail", poll_id)
-    return render(request, 'polls/poll_result.html', {'poll': poll})
 
 
 @login_required
