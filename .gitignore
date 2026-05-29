@@ -17,6 +17,12 @@ test-results/
 *.egg-info/
 node_modules/
 
+# Word temp/lock files
+~$*
+
+# Screenshots are kept locally for report generation but not tracked in the repo
+screenshots/
+
 # Internal planning memos & tooling (not graded deliverables)
 reports/SUMMARY_BRIEFING.md
 reports/WORK_BLUEPRINT_ZH.md
